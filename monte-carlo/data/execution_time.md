@@ -1,4 +1,4 @@
-The simulation completed in 2773.06 milliseconds (2.77306 seconds).
+The simulation completed in 3765.66 milliseconds (3.76566 seconds).
 
 > Configuration
 

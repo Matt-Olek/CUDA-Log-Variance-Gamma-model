@@ -13,8 +13,8 @@ input_size = 5
 hidden_size = 100
 output_size = 1
 num_epochs = 1000
-batch_size = 1000
-learning_rate = 1e-3
+batch_size = 5000
+learning_rate = 1e-4
 
 ### --------- CUDA SETTINGS -------- ###
 
@@ -71,38 +71,40 @@ print("Model saved to models/model.pth")
 
 ### ------------ PLOTTING ------------ ###
 
-plt.figure(figsize=(10, 6))
-plt.plot(train_losses, label="Training Loss")
-plt.plot(val_losses, label="Validation Loss")
-plt.xlabel("Epoch")
-plt.ylabel("Loss")
-plt.yscale("log")
-plt.title("Training and Validation Loss Over Time")
-plt.legend()
-plt.grid(True)
-plt.savefig("visualizations/loss_plot.png")
-print("Loss plot saved to visualizations/loss_plot.png")
+# Create a figure with two subplots side by side
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 8))
 
+# Plot 1: Training and Validation Loss
+ax1.plot(train_losses, label="Training Loss")
+ax1.plot(val_losses, label="Validation Loss")
+ax1.set_xlabel("Epoch")
+ax1.set_ylabel("Loss")
+ax1.set_yscale("log")
+ax1.set_title("Training and Validation Loss Over Time")
+ax1.legend()
+ax1.grid(True)
 
+# Get predictions for validation set
 model.eval()
 with torch.no_grad():
     val_predictions = model(X_val).cpu().numpy()
     actual_prices = y_val.cpu().numpy()
 
-# Create scatter plot of predicted vs actual prices
-plt.figure(figsize=(10, 10))
-plt.scatter(actual_prices, val_predictions, alpha=0.5)
-plt.plot(
+# Plot 2: Predicted vs Actual Prices
+ax2.scatter(actual_prices, val_predictions, alpha=0.5)
+ax2.plot(
     [0, actual_prices.max()],
     [0, actual_prices.max()],
     "r--",
     label="Perfect Prediction",
 )
-plt.xlabel("Actual Price")
-plt.ylabel("Predicted Price")
+ax2.set_xlabel("Actual Price")
+ax2.set_ylabel("Predicted Price")
+ax2.set_title("Predicted vs Actual Prices on Val Set")
+ax2.legend()
+ax2.grid(True)
 
-plt.title("Predicted vs Actual Prices on Val Set")
-plt.legend()
-plt.grid(True)
-plt.savefig("visualizations/pred_vs_actual.png")
-print("Predicted vs Actual plot saved to visualizations/pred_vs_actual.png")
+# Adjust layout and save
+plt.tight_layout()
+plt.savefig("visualizations/training_plots.png")
+print("Training plots saved to visualizations/training_plots.png")

@@ -1,31 +1,41 @@
 # CUDA Implementation of Nested Monte Carlo for Log-Variance-Gamma Model
 
-A high-performance implementation of the Log-Variance-Gamma model using CUDA for accelerated Monte Carlo simulations, developed as part of the ENSAE GPU Programming course teached by [Lokmane Abbas Turki](https://www.ensae.fr/en/faculty/4113-lokmane-abbas-turki).
+A high-performance implementation of the Log-Variance-Gamma model using CUDA for accelerated Monte Carlo simulations, developed as part of the ENSAE GPU Programming course taught by [Lokmane Abbas Turki](https://www.ensae.fr/en/faculty/4113-lokmane-abbas-turki).
 
-***
-
-<div align="center" >
+<div align="center">
   <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Nvidia_CUDA_Logo.jpg" height="60px" style="filter: drop-shadow(0 0 5px white);"/>
   &nbsp;&nbsp;&nbsp;&nbsp;
   <img src="https://raw.githubusercontent.com/pytorch/pytorch/master/docs/source/_static/img/pytorch-logo-dark.png" height="60px" style="filter: drop-shadow(0 0 2px white);"/>
 </div>
 
-***
+## Table of Contents
+- [Overview](#overview)
+- [Project Structure](#project-structure)
+- [Installation](#installation)
+- [Technical Implementation](#technical-implementation)
+  - [Gamma Distribution Generators](#gamma-distribution-generators)
+  - [Monte Carlo Simulation](#monte-carlo-simulation)
+  - [Neural Network Architecture](#neural-network-architecture)
+- [Results](#results)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Overview
 
-This project implements a nested Monte Carlo simulation for the Log-Variance-Gamma model using CUDA acceleration. It includes:
+This project implements a nested Monte Carlo simulation for the Log-Variance-Gamma model using CUDA acceleration. The implementation focuses on high-performance computing aspects while maintaining numerical accuracy. Key features include:
 
 - Two efficient gamma variable generation algorithms:
   - Johnk's method
   - Best's method
-- A GPU-accelerated nested Monte Carlo simulation
-- A neural network training using **PyTorch** for price approximation
+- GPU-accelerated nested Monte Carlo simulation with optimized memory access patterns
+- Neural network training using PyTorch for price approximation
+- Comprehensive parameter space exploration
 
 ## Project Structure
 
 ```plaintext
 ├── README.md
+├── requirements.txt
 ├── gamma-generators/          # Gamma distribution generators
 │   ├── best.cu                # Best's method implementation
 │   └── johnk.cu               # Johnk's method implementation
@@ -36,35 +46,39 @@ This project implements a nested Monte Carlo simulation for the Log-Variance-Gam
 └── pytorch/                   # Neural network implementation
     ├── train.py               # Training script
     └── model.py               # Neural network architecture
+    └── visualizations.py      # Script to visualize the dataset
+    └── models/
+    └── visualizations/
 ```
 
 ## Installation
 
 1. Clone the repository:
-
 ```bash
 git clone https://github.com/Matt-Olek/CUDA-Log-Variance-Gamma-model.git
 cd CUDA-Log-Variance-Gamma-model
 ```
 
-## Table of Contents
+2. Ensure you have the following dependencies:
+- CUDA Toolkit (version 11.0 or higher)
+- PyTorch with CUDA support
+- Python 3.8 or higher
+- Required Python packages (numpy, pandas, matplotlib) see [requirements.txt](./requirements.txt)
 
-- [Gamma Distribution Generators](#gamma-distribution-generators)
-- [Monte Carlo Simulation](#monte-carlo-simulation)
-- [Neural Network Training](#neural-network-training)
+## Technical Implementation
 
-***
+### Gamma Distribution Generators
 
-## 1. Gamma Distribution Generators
+The `gamma-generators/` directory contains two implementations of gamma distribution generators:
 
-The `gamma-generators/` folder contains two implementations of the gamma distribution generator:
+- `best.cu`: Best's method implementation
+- `johnk.cu`: Johnk's method implementation
 
-- `best.cu`: Best's method
-- `johnk.cu`: Johnk's method
+Both implementations are coded as `__device__` functions and can be called directly from the Monte Carlo simulation. By default, the simulation uses Johnk's method. To switch to Best's method, modify the macro definition in `simulation.cu` to `#define BEST_METHOD`.
 
-They are both coded as `__device__` functions and can be called directly from the Monte Carlo simulation. **By default**, the `simulation.cu` file uses the **johnk**'s method. To use best's method, you can change the macro definition at the beginning of the file `simulation.cu` to `#define BEST_METHOD`.
+### Monte Carlo Simulation
 
-## 2. Monte Carlo Simulation
+The simulation explores a comprehensive parameter space:
 
 > I simulated 10 000 paths, each with 1000 steps across a grid of the following parameters:
 >
@@ -77,19 +91,14 @@ They are both coded as `__device__` functions and can be called directly from th
 Which gives us a total of : $5 \times 5 \times 10 \times 10 \times 10 = 25000$ different parameters combinations.
 When taking into account the number of paths, we get $25000 \times 10000 = 2.5 \times 10^8$ simulations, so a **quarter of a billion**.
 
-Thats why we need to use GPU acceleration to make it feasible to compute it in a reasonable time.
+#### Memory Optimization Strategy
 
-My approach consisted in **parralelizing** the simulations across the different **parameters combinations** (and not the paths of the same simulation) as the Monte Carlo simulation is independent for each path.
+The implementation uses an advanced memory allocation and indexing approach:
 
-As seen in the course, the best way to do it is to use the CUDA framework to store and index the different parameters combinations in the registers so that we can use the thread index to access the correct parameters. This is done in the following way:
-
-### Memory Allocation and Indexing Strategy
-
-The implementation I used uses an advanced memory allocation and indexing approach:
-
-- Each thread handles **one** parameter **combination**, with the thread index decomposed into parameter indices using integer division
-- Results are stored in a flat array with 2 values per combination (**moment of order 1 and 2**)
-- This approach minimizes memory access patterns and maximizes parallelization efficiency
+- Each thread handles one parameter combination
+- Thread index decomposition using integer division for parameter access
+- Results stored in a flat array with 2 values per combination (moments of order 1 and 2)
+- Optimized memory access patterns for GPU efficiency
 
 For example, to decompose a thread index into parameter indices:
 
@@ -122,28 +131,18 @@ Here's a visualization of how different thread indices map to parameter combinat
 - κ changes every 100 indices (100-199)
 - K changes every 1000 indices (1000-1999)
 - T changes every 25000 indices
+#### Block Sizing
 
-### Block Sizing Strategy
+- Threads per block: 256
+- Dynamic block count calculation based on parameter combinations
+- Formula: `(total_combinations + threadsPerBlock - 1) / threadsPerBlock`
 
-I used the following block sizing strategy to optimize GPU performance:
-
-- Each thread processes one complete parameter combination (all trajectories for one set of parameters)
-- Block size is set to 256 threads per block, its a bit arbitrary but it works well with the number of parameters and the number of paths on my GPU. We may be able to optimize it further.
-- The total number of blocks is calculated dynamically based on the number of parameter combinations: `(total_combinations + threadsPerBlock - 1) / threadsPerBlock`
-
-### Dataset Generation
-
-1. Navigate to the Monte Carlo directory:
+#### Launching the simulation
 
 ```bash
 cd monte-carlo
-```
-
-2. Compile and run the simulation:
-
-```bash
-nvcc -o SIMULATION simulation.cu
-./SIMULATION
+nvcc -o simulation simulation.cu
+./simulation
 ```
 
 The simulation will generate a csv file with the results in the `monte-carlo/data` directory. It will be later be used to train the neural network.
@@ -152,10 +151,17 @@ Performance results are saved in the `monte-carlo/data/execution_time.md` file a
 
 > [Click to see the output](./monte-carlo/data/execution_time.md)
 
+An histogram of the prices is generated using the `pytorch/dataset_visualizations.py` script and saved in the `pytorch/visualizations` directory.
+
+![Histogram of prices](./pytorch/visualizations/price_histogram.png)
+
+![K vs T surface](./pytorch/visualizations/K_vs_T_surface.png)
+
 ### 3. Neural Network Training
 
 > I used a simple **MLP with 4 hidden layers, and 1 output layer**.
-> The model is not very complex, we could have used a more fine-grained approach by using some skipped connections or batch normalization but I decided to keep it simple as the class is more about the GPU programming than the model design. The model can be found in the `pytorch/model.py` file and adapted freely.
+> The model is not very complex, we could have used a more fine-grained approach by using some skipped connections or batch normalization but I decided to keep it 
+simple as the class is more about the GPU programming than the model design. The model can be found in the `pytorch/model.py` file and adapted freely.
 
 ***
 
@@ -165,8 +171,8 @@ flowchart LR
     H1 --> H2["Hidden Layer 2<br>100 neurons<br>ReLU"]
     H2 --> H3["Hidden Layer 3<br>100 neurons<br>ReLU"]
     H3 --> H4["Hidden Layer 4<br>100 neurons<br>ReLU"]
-    H4 --> OutputL["Output Layer<br>100 neuron<br> No ReLU"]
-    OutputL --> n1["Price"]
+    H4 --> OutputL["Output Layer<br>1 neuron<br>Linear"]
+    OutputL --> Price["Price"]
 
     Input@{ shape: card}
     H1@{ shape: lean-r}
@@ -174,40 +180,23 @@ flowchart LR
     H3@{ shape: lean-r}
     H4@{ shape: lean-r}
     OutputL@{ shape: lean-r}
-    n1@{ shape: card}
-
+    Price@{ shape: card}
 ```
 
-***
-
-Both the model and the training script are located in the `pytorch` directory. You can check the model in the `pytorch/model.py` file and the training script in the `pytorch/train.py` file.
-
-1. Navigate to the PyTorch directory:
+To run the training script, use the following command:
 
 ```bash
 cd pytorch
-```
-
-2. Run the training script:
-
-```bash
 python train.py
 ```
-
-The training script will:
-
-- Generate training and validation loss plots
-- Save the trained model in the `models` directory, for later use
-- Create visualizations of the training process in the `visualizations` directory
 
 > Warning: The training script will not run if there is no GPU available.
 > The assertion `assert torch.cuda.is_available(), "CUDA is not available"` will raise an error if no GPU is available.
 
-## Results
+#### Training results
 
-![Training loss](./pytorch/visualizations/loss_plot.png)
+![Training plots](./pytorch/visualizations/training_plots.png)
 
-![Predicted vs Actual](./pytorch/visualizations/pred_vs_actual.png)
+***
 
-> Author
-> **Matthieu Olekhnovitch** - [@Matt-Olek](https://github.com/Matt-Olek)
+**Author**: Matthieu Olekhnovitch - [@Matt-Olek](https://github.com/Matt-Olek)

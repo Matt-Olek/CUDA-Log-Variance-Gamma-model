@@ -212,3 +212,4 @@ cython_debug/
 .pypirc
 
 monte-carlo/data/vg_prices_all.csv
+monte-carlo/SIMULATION
