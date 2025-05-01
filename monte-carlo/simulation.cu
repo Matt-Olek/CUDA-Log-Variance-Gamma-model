@@ -134,7 +134,7 @@ int main()
     int blocks = (total_combinations + threadsPerBlock - 1) / threadsPerBlock;
 
     // Configuration
-    int Nsteps = 100;
+    int Nsteps = 252;
     int Ntraj = 10000;
 
     curandState *states;
