@@ -4,10 +4,10 @@ A high-performance implementation of the Log-Variance-Gamma model using CUDA for
 
 ***
 
-<div align="center">
-  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Nvidia_CUDA_Logo.jpg" height="60px"/>
+<div align="center" >
+  <img src="https://upload.wikimedia.org/wikipedia/commons/b/b9/Nvidia_CUDA_Logo.jpg" height="60px" style="filter: drop-shadow(0 0 5px white);"/>
   &nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/pytorch/pytorch/master/docs/source/_static/img/pytorch-logo-dark.png" height="60px"/>
+  <img src="https://raw.githubusercontent.com/pytorch/pytorch/master/docs/source/_static/img/pytorch-logo-dark.png" height="60px" style="filter: drop-shadow(0 0 2px white);"/>
 </div>
 
 ***
@@ -19,8 +19,8 @@ This project implements a nested Monte Carlo simulation for the Log-Variance-Gam
 - Two efficient gamma variable generation algorithms:
   - Johnk's method
   - Best's method
-- GPU-accelerated nested Monte Carlo simulation
-- Neural network training using **PyTorch** for price approximation
+- A GPU-accelerated nested Monte Carlo simulation
+- A neural network training using **PyTorch** for price approximation
 
 ## Project Structure
 
@@ -55,16 +55,16 @@ cd CUDA-Log-Variance-Gamma-model
 
 ***
 
-## Gamma Distribution Generators
+## 1. Gamma Distribution Generators
 
-The `gamma-generators` folder contains two implementations of the gamma distribution generator:
+The `gamma-generators/` folder contains two implementations of the gamma distribution generator:
 
 - `best.cu`: Best's method
 - `johnk.cu`: Johnk's method
 
 They are both coded as `__device__` functions and can be called directly from the Monte Carlo simulation. **By default**, the `simulation.cu` file uses the **johnk**'s method. To use best's method, you can change the macro definition at the beginning of the file `simulation.cu` to `#define BEST_METHOD`.
 
-## Monte Carlo Simulation
+## 2. Monte Carlo Simulation
 
 > I simulated 10 000 paths, each with 1000 steps across a grid of the following parameters:
 >
@@ -149,12 +149,13 @@ nvcc -o SIMULATION simulation.cu
 The simulation will generate a csv file with the results in the `monte-carlo/data` directory. It will be later be used to train the neural network.
 
 Performance results are saved in the `monte-carlo/data/execution_time.md` file and rendered below:
-> ![Execution Time](./monte-carlo/data/execution_time.md)
 
-### Neural Network Training
+> [Click to see the output](./monte-carlo/data/execution_time.md)
 
-> For this project I used a simple **MLP with 4 hidden layers, and 1 output layer**.
-> As the model is not very complex, we could have used a more fine-grained approach by using some skipped connections or batch normalization but I decided to keep it simple as the class is more about the GPU programming than the model design. The model can be found in the `pytorch/model.py` file and adapted freely.
+### 3. Neural Network Training
+
+> I used a simple **MLP with 4 hidden layers, and 1 output layer**.
+> The model is not very complex, we could have used a more fine-grained approach by using some skipped connections or batch normalization but I decided to keep it simple as the class is more about the GPU programming than the model design. The model can be found in the `pytorch/model.py` file and adapted freely.
 
 ***
 
@@ -174,13 +175,7 @@ flowchart LR
     H4@{ shape: lean-r}
     OutputL@{ shape: lean-r}
     n1@{ shape: card}
-    style Input fill:#FFE0B2
-    style H1 fill:#C8E6C9
-    style H2 fill:#C8E6C9
-    style H3 fill:#C8E6C9
-    style H4 fill:#C8E6C9
-    style OutputL fill:#BBDEFB
-    style n1 fill:#E1BEE7
+
 ```
 
 ***
@@ -202,8 +197,8 @@ python train.py
 The training script will:
 
 - Generate training and validation loss plots
-- Save the trained model in the `models` directory
-- Create visualizations of the results in the `visualizations` directory
+- Save the trained model in the `models` directory, for later use
+- Create visualizations of the training process in the `visualizations` directory
 
 > Warning: The training script will not run if there is no GPU available.
 > The assertion `assert torch.cuda.is_available(), "CUDA is not available"` will raise an error if no GPU is available.
