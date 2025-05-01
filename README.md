@@ -15,10 +15,7 @@ A high-performance implementation of the Log-Variance-Gamma model using CUDA for
 - [Technical Implementation](#technical-implementation)
   - [Gamma Distribution Generators](#gamma-distribution-generators)
   - [Monte Carlo Simulation](#monte-carlo-simulation)
-  - [Neural Network Architecture](#neural-network-architecture)
-- [Results](#results)
-- [Contributing](#contributing)
-- [License](#license)
+  - [Neural Network Training](#neural-network-training)
 
 ## Overview
 
@@ -90,7 +87,7 @@ The simulation explores a comprehensive parameter space:
 > | Mean reversion speed **κ** | 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20 |
 
 Which gives us a total of : $5 \times 5 \times 10 \times 10 \times 10 = 25000$ different parameters combinations.
-When taking into account the number of paths, we get $25000 \times 10000 = 2.5 \times 10^8$ simulations, so a **quarter of a billion**.
+When taking into account the number of paths, we get $25000 \times 10000 = 2.5 \times 10^8$ simulations, so a **quarter of a billion simulations**.
 
 #### Memory Optimization Strategy
 
@@ -158,7 +155,19 @@ An histogram of the prices is generated using the `pytorch/dataset_visualization
 
 ![Dataset visualizations](./pytorch/visualizations/dataset_visualizations.png)
 
-### 3. Neural Network Training
+> **Heavy Simulation**
+> Another simulation configuration is available in the `monte-carlo/simulation_heavy.cu` file. It is a more intensive simulation that uses 100 000 paths per parameter combination and more parameters (144 000 combinations in total).
+>
+> In the same way, you can re-launch the simulation with the following command:
+> ```bash
+> cd monte-carlo
+> nvcc -o simulation_heavy simulation_heavy.cu
+> ./simulation_heavy
+> ```
+> The results are saved in the `monte-carlo/data/execution_time_heavy.md` file :
+> [Click to see the output](./monte-carlo/data/execution_time_heavy.md)
+
+### Neural Network Training
 
 Now that we have a dataset, we can train a neural network to approximate the price of the Log-Variance-Gamma model.
 
