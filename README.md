@@ -81,11 +81,13 @@ The simulation explores a comprehensive parameter space:
 
 > I simulated 10 000 paths, each with 1000 steps across a grid of the following parameters:
 >
-> - **Time to maturity T**: [0.3, 0.5, 1.0, 2.0, 3.0]
-> - **Strike price K**: [0.8, 0.9, 1.0, 1.1, 1.2]
-> - **Volatility σ**: [0.10, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20]
-> - **Mean reversion θ**: [-0.34, -0.30, -0.27, -0.24, -0.21, -0.25, -0.26, -0.35, -0.40, -0.45]
-> - **Mean reversion speed κ**: [0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20]
+> | Parameter | Values |
+> |-----------|--------|
+> | Time to maturity **T** | 0.3, 0.5, 1.0, 2.0, 3.0 |
+> | Strike price **K** | 0.8, 0.9, 1.0, 1.1, 1.2 |
+> | Volatility **σ** | 0.10, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20 |
+> | Mean reversion **θ** | -0.34, -0.30, -0.27, -0.24, -0.21, -0.25, -0.26, -0.35, -0.40, -0.45 |
+> | Mean reversion speed **κ** | 0.11, 0.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19, 0.20 |
 
 Which gives us a total of : $5 \times 5 \times 10 \times 10 \times 10 = 25000$ different parameters combinations.
 When taking into account the number of paths, we get $25000 \times 10000 = 2.5 \times 10^8$ simulations, so a **quarter of a billion**.
