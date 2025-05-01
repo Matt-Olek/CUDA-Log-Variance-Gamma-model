@@ -29,7 +29,6 @@ This project implements a nested Monte Carlo simulation for the Log-Variance-Gam
   - Best's method
 - GPU-accelerated nested Monte Carlo simulation with optimized memory access patterns
 - Neural network training using PyTorch for price approximation
-- Comprehensive parameter space exploration
 
 ## Project Structure
 
@@ -74,7 +73,7 @@ The `gamma-generators/` directory contains two implementations of gamma distribu
 - `best.cu`: Best's method implementation
 - `johnk.cu`: Johnk's method implementation
 
-Both implementations are coded as `__device__` functions and can be called directly from the Monte Carlo simulation. By default, the simulation uses Johnk's method. To switch to Best's method, modify the macro definition in `simulation.cu` to `#define BEST_METHOD`.
+Both implementations are coded as `__device__` functions and can be called directly from the Monte Carlo simulation. By default, the simulation uses Johnk's method. To switch to Best's method, modify the import in `simulation.cu` to `#include "../gamma-generators/best.h"` and the function used in the `VG_MC_parallel_kernel` to `gamma_best`.
 
 ### Monte Carlo Simulation
 
@@ -93,7 +92,7 @@ When taking into account the number of paths, we get $25000 \times 10000 = 2.5 \
 
 #### Memory Optimization Strategy
 
-The implementation uses an advanced memory allocation and indexing approach:
+The implementation uses an advanced memory allocation and indexing approach inspired by the course:
 
 - Each thread handles one parameter combination
 - Thread index decomposition using integer division for parameter access
@@ -110,7 +109,7 @@ int k_idx = idx / (10 * 10 * 10);      // dim(kappa) * dim(theta) * dim(sigma)
 idx -= k_idx * (10 * 10 * 10);
 int kappa_idx = idx / (10 * 10);       // dim(theta) * dim(sigma)
 idx -= kappa_idx * (10 * 10);
-int theta_idx = idx / 10;              // sigma
+int theta_idx = idx / 10;              // dim(sigma)
 int sigma_idx = idx % 10;              
 ```
 
@@ -131,6 +130,7 @@ Here's a visualization of how different thread indices map to parameter combinat
 - κ changes every 100 indices (100-199)
 - K changes every 1000 indices (1000-1999)
 - T changes every 25000 indices
+
 #### Block Sizing
 
 - Threads per block: 256
@@ -139,6 +139,7 @@ Here's a visualization of how different thread indices map to parameter combinat
 
 #### Launching the simulation
 
+To re-launch the simulation, use the following command:
 ```bash
 cd monte-carlo
 nvcc -o simulation simulation.cu
@@ -147,17 +148,17 @@ nvcc -o simulation simulation.cu
 
 The simulation will generate a csv file with the results in the `monte-carlo/data` directory. It will be later be used to train the neural network.
 
-Performance results are saved in the `monte-carlo/data/execution_time.md` file and rendered below:
+Performance results are saved in the `monte-carlo/data/execution_time.md` file :
 
 > [Click to see the output](./monte-carlo/data/execution_time.md)
 
 An histogram of the prices is generated using the `pytorch/dataset_visualizations.py` script and saved in the `pytorch/visualizations` directory.
 
-![Histogram of prices](./pytorch/visualizations/price_histogram.png)
-
-![K vs T surface](./pytorch/visualizations/K_vs_T_surface.png)
+![Dataset visualizations](./pytorch/visualizations/dataset_visualizations.png)
 
 ### 3. Neural Network Training
+
+Now that we have a dataset, we can train a neural network to approximate the price of the Log-Variance-Gamma model.
 
 > I used a simple **MLP with 4 hidden layers, and 1 output layer**.
 > The model is not very complex, we could have used a more fine-grained approach by using some skipped connections or batch normalization but I decided to keep it 
