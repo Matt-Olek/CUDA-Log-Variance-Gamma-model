@@ -71,7 +71,6 @@ print("Model saved to models/model.pth")
 
 ### ------------ PLOTTING ------------ ###
 
-# Create a figure with two subplots side by side
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 8))
 
 # Plot 1: Training and Validation Loss
@@ -84,7 +83,6 @@ ax1.set_title("Training and Validation Loss Over Time")
 ax1.legend()
 ax1.grid(True)
 
-# Get predictions for validation set
 model.eval()
 with torch.no_grad():
     val_predictions = model(X_val).cpu().numpy()
@@ -104,7 +102,6 @@ ax2.set_title("Predicted vs Actual Prices on Val Set")
 ax2.legend()
 ax2.grid(True)
 
-# Adjust layout and save
 plt.tight_layout()
 plt.savefig("visualizations/training_plots.png")
 print("Training plots saved to visualizations/training_plots.png")
