@@ -37,15 +37,15 @@ __global__ void VG_MC_parallel_kernel(
 {
     int idx = blockDim.x * blockIdx.x + threadIdx.x;
 
-    if (idx >= 5 * 5 * 10 * 10 * 20)
+    if (idx >= 8 * 9 * 10 * 10 * 20)
         return;
 
     curandState localState = state[idx];
 
     int param_idx = idx;
 
-    int t_idx = param_idx / (5 * 10 * 10 * 20); // K * kappa * theta * sigma
-    param_idx -= t_idx * (5 * 10 * 10 * 20);
+    int t_idx = param_idx / (9 * 10 * 10 * 20); // K * kappa * theta * sigma
+    param_idx -= t_idx * (9 * 10 * 10 * 20);
     int k_idx = param_idx / (10 * 10 * 20); // kappa * theta * sigma
     param_idx -= k_idx * (10 * 10 * 20);
     int kappa_idx = param_idx / (10 * 20); // theta * sigma
@@ -123,11 +123,11 @@ int main()
     float theta[10] = {-0.34f, -0.3f, -0.27f, -0.24f, -0.21f, -0.25f, -0.26f, -0.35f, -0.4f, -0.45f};
     float kappa[10] = {0.11f, 0.12f, 0.13f, 0.14f, 0.15f, 0.16f, 0.17f, 0.18f, 0.19f, 0.20f};
 
-    cudaMemcpyToSymbol(Td, T, 5 * sizeof(float));
-    cudaMemcpyToSymbol(Kd, K, 5 * sizeof(float));
+    cudaMemcpyToSymbol(Td, T, 8 * sizeof(float));
+    cudaMemcpyToSymbol(Kd, K, 9 * sizeof(float));
     cudaMemcpyToSymbol(kappad, kappa, 10 * sizeof(float));
     cudaMemcpyToSymbol(thetad, theta, 10 * sizeof(float));
-    cudaMemcpyToSymbol(sigmad, sigma, 10 * sizeof(float));
+    cudaMemcpyToSymbol(sigmad, sigma, 20 * sizeof(float));
 
     int total_combinations = 8 * 9 * 10 * 10 * 20; // T * K * kappa * theta * sigma
     int threadsPerBlock = 256;

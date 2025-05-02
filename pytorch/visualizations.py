@@ -2,7 +2,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-file_path = "../monte-carlo/data/vg_prices_all.csv"
+file_path = "../monte-carlo/data/vg_prices_all_heavy.csv"
 
 df = pd.read_csv(file_path)
 
