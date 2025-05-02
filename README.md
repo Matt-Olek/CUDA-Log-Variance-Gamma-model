@@ -76,7 +76,7 @@ Both implementations are coded as `__device__` functions and can be called direc
 
 The simulation explores a comprehensive parameter space:
 
-> I simulated 10 000 paths, each with 1000 steps across a grid of the following parameters:
+> I simulated 10 000 paths, each with 252 steps across a grid of the following parameters:
 >
 > | Parameter | Values |
 > |-----------|--------|
