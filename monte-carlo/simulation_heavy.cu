@@ -69,7 +69,7 @@ __global__ void VG_MC_parallel_kernel(
 
     for (int i = 0; i < Ntraj; i++) // On parralélise sur les paramètres et non pas sur les trajectoires
     {
-        float S = w * T;
+        float S = 0.0f;
 
         for (int j = 0; j < Nsteps; ++j)
         {
@@ -80,7 +80,7 @@ __global__ void VG_MC_parallel_kernel(
             float Ni = curand_normal(&localState);
 
             float delta_X = sigma * Ni * sqrtf(delta_Si) + theta * delta_Si;
-            S += delta_X;
+            S += w * dt + delta_X;
         }
 
         float YT = expf(S);
